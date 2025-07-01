@@ -123,7 +123,10 @@ int plan_pmm_trajectory(std::string planner_config_file, std::string waypoints_c
   std::cout << "Optimized trajectory duration after second optimization run with LTD: " << mp_tr.duration()  << " s." << std::endl;
 
   if (export_trajectory) {
-    mp_tr.sample_and_export_trajectory(sampling_step, "scripts/trajectory_data/" + sampled_trajectory_file);
+	std::cout << "exporting trajectory" << std::endl;
+	// std::cout << sampled_trajectory_file << std::endl;
+	// std::cout << sampling_step << std::endl;
+    	mp_tr.sample_and_export_trajectory(sampling_step, "scripts/trajectory_data/" + sampled_trajectory_file);
   }
 
   std::cout << "Visualize results by running scripts/plot_trajectory.py or scripts/plot_profiles.py!"<< std::endl;

@@ -1546,9 +1546,18 @@ namespace pmm {
         std::vector<Vector<3>> a_s;
 
         std::tie(t_s, p_s, v_s, a_s) = this->get_sampled_trajectory(sampling_period);
+	std::cout << "output file: " << output_file<< std::endl;
 
         // export sampled trajectory
         std::ofstream outFile(output_file);
+
+	if (!outFile.is_open()) {
+	    std::cerr << "Failed to open: " << output_file << std::endl;
+	}
+
+    	std::cout << "Current working directory: " 
+              << std::filesystem::current_path() << std::endl;
+
         for (int i=0;i<t_s.size();i++) {
             outFile << t_s[i] << "," << p_s[i](0) << "," << p_s[i](1) << "," << p_s[i](2) << "," << v_s[i](0) << "," << v_s[i](1) << "," << v_s[i](2) << "," << a_s[i](0) << "," << a_s[i](1) << "," << a_s[i](2) << std::endl;
         }

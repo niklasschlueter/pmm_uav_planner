@@ -38,6 +38,13 @@ target_link_libraries(main ${PROJECT_NAME} pthread yaml-cpp)
 # Create an object directory for compiled files
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/obj)
 
+find_package(pybind11 REQUIRED)
+
+pybind11_add_module(pmm_planner
+    src/bindings.cpp  # <-- your Pybind11 wrapper!
+    ${SOURCE_FILES}   # <-- reuse the same sources!
+)
+
 # Optional: If you have test files, you can add them here
 # For example:
 # set(TEST_FILES tests/test_pmm_mg_trajectory3d.cpp)
