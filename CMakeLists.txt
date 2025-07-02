@@ -44,7 +44,11 @@ pybind11_add_module(pmm_planner
     src/bindings.cpp  # <-- your Pybind11 wrapper!
     ${SOURCE_FILES}   # <-- reuse the same sources!
 )
+# Install .so into the package dir
+install(TARGETS pmm_planner LIBRARY DESTINATION pmm_planner)
 
+# Also install the __init__.py into the same dir
+install(FILES ${CMAKE_SOURCE_DIR}/pmm_planner/__init__.py DESTINATION pmm_planner)
 # Optional: If you have test files, you can add them here
 # For example:
 # set(TEST_FILES tests/test_pmm_mg_trajectory3d.cpp)
