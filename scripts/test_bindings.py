@@ -1,31 +1,74 @@
-import sys
-
-#sys.path.append("/home/niklas/repos/pmm_uav_planner_custom/build")
-#sys.path.append("/home/niklas/repos/pmm_uav_planner/build")
 import pmm_planner
 import yaml
 import numpy as np
-import pmm_planner
 import matplotlib.pyplot as plt
 import time
 
-import faulthandler
+# Somehwat useful for debugging segfaults
+#import faulthandler
+#faulthandler.enable()
 
-faulthandler.enable()
+def plan_pmm_trajectory_from_waypoints_file(
+    waypoints_config_file: str,
+    planner_config_file: str,
+    sampling_period: float = 0.05,
+    csv_path: str | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Plans a PMM trajectory using a waypoints configuration file and a planner configuration file.
 
+    This function loads the waypoints from a YAML file and calls `plan_pmm_trajectory`
+    with the loaded configuration.
 
-def plan_pmm_trajectory(
-    planner_config_file, waypoints_config_file, sampling_period=0.05, csv_path=None
-):
+    Args:
+        waypoints_config_file (str): Path to the YAML file containing waypoints configuration.
+        planner_config_file (str): Path to the YAML file containing planner parameters.
+        sampling_period (float, optional): Time interval for sampling the trajectory. Defaults to 0.05.
+        csv_path (str, optional): If provided, the sampled trajectory will be exported to this CSV file path.
+
+    Returns:
+        tuple: A tuple containing:
+            - t_s (np.ndarray): Sampled timestamps.
+            - p_s (np.ndarray): Sampled positions.
+            - v_s (np.ndarray): Sampled velocities.
+            - a_s (np.ndarray): Sampled accelerations.
+    """
     # Load YAML
-    with open(planner_config_file) as f:
-        planner_config = yaml.safe_load(f)
-
     with open(waypoints_config_file) as f:
         waypoints_config = yaml.safe_load(f)
 
-    print(f"planner config: {planner_config}")
-    print(f"waypoints config: {waypoints_config}")
+    return plan_pmm_trajectory(waypoints_config, planner_config_file, sampling_period, csv_path)
+
+
+def plan_pmm_trajectory(
+    waypoints_config: dict,
+    planner_config_file: str,
+    sampling_period: float = 0.05,
+    csv_path: str | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Plans a PMM trajectory given waypoints and planner configuration.
+
+    Loads planner parameters from file, constructs a PMM trajectory, samples it,
+    optionally exports it to a CSV file, and plots the resulting trajectory.
+
+    Args:
+        waypoints_config (dict): Dictionary containing start/end velocities and waypoints.
+        planner_config_file (str): Path to the YAML file containing planner parameters.
+        sampling_period (float, optional): Time interval for sampling the trajectory. Defaults to 0.05.
+        csv_path (str, optional): If provided, the sampled trajectory will be exported to this CSV file path.
+
+    Returns:
+        tuple: A tuple containing:
+            - t_s (np.ndarray): Sampled timestamps.
+            - p_s (np.ndarray): Sampled positions.
+            - v_s (np.ndarray): Sampled velocities.
+            - a_s (np.ndarray): Sampled accelerations.
+    """
+
+    with open(planner_config_file) as f:
+        planner_config = yaml.safe_load(f)
+
 
     # Extract stuff — same as C++
     max_acc_norm = planner_config["uav"]["maximum_acceleration_norm"]
@@ -55,18 +98,16 @@ def plan_pmm_trajectory(
 
     debug = planner_config["debug"]
 
-    start_pos = waypoints_config["start"]["position"]
-    end_pos = waypoints_config["end"]["position"]
-    start_vel = waypoints_config["start"]["velocity"]
-    end_vel = waypoints_config["end"]["velocity"]
+    # Previous definition required this
+    #start_pos = waypoints_config["start"]["position"]
+    #end_pos = waypoints_config["end"]["position"]
+    #waypoints = [start_pos] + waypoints + [end_pos]
+
+    # Evaluate waypoints_config
+    start_vel = waypoints_config["start_velocity"]
+    end_vel = waypoints_config["end_velocity"]
     waypoints = waypoints_config["waypoints"]
-    waypoints = [start_pos] + waypoints + [end_pos]
 
-    print(f"before construction")
-    print(f"waypoints: {waypoints}")
-    # waypoints = np.array(waypoints)
-
-    # waypoints = [np.array(wp, dtype=np.float64) for wp in waypoints]
     # Construct
     traj = pmm_planner.PMM_MG_Trajectory3D(
         waypoints,
@@ -90,29 +131,31 @@ def plan_pmm_trajectory(
         debug,
     )
 
-    print("Trajectory duration:", traj.duration())
-
     t_s, p_s, v_s, a_s = traj.get_sampled_trajectory(sampling_period)
     t_s, p_s, v_s, a_s = np.array(t_s), np.array(p_s), np.array(v_s), np.array(a_s)
 
-    # print("Times:", t_s[:])
-    # print("First pos:", p_s[:])
-    # print("First vel:", v_s[:])
-    # print("First acc:", a_s[:])
 
     if csv_path is not None:
         traj.sample_and_export_trajectory(sampling_period, csv_path)
 
+    return t_s, p_s, v_s, a_s
+
+
+def debug_plot(p_s):
     ax = plt.figure().add_subplot(projection="3d")
-    print(f"shape ps: {np.shape(p_s), type(p_s)}")
     ax.plot(p_s[:, 0], p_s[:, 1], p_s[:, 2])
     plt.show()
 
 
 if __name__ == "__main__":
-    t0 = time.perf_counter()
-    planner_config_file = "../config/planner/planner_config.yaml"
-    waypoints_config_file = "../config/waypoints/eight.yaml"
-    plan_pmm_trajectory(planner_config_file, waypoints_config_file, csv_path=None)
-    t1 = time.perf_counter()
-    print(f"time to plan: {t1 - t0}")
+    # Set sources - only works if run form scripts directory
+    planner_config_file = "../config/planner/my_conf.yaml"
+    waypoints_config_file = "../config/waypoints/hypotrochoid.yaml"
+
+    # with waypoints file
+    t_s, p_s, v_s, a_s = plan_pmm_trajectory_from_waypoints_file(waypoints_config_file, planner_config_file, csv_path=None)
+    debug_plot(p_s)
+    waypoints_config = {"start_velocity" : [0, 0, 0], "end_velocity" : [0, 0, 0], "waypoints": np.array([[0, 0, 0], [1,0,0], [2,0,0]])}
+    # with waypoints dict
+    t_s, p_s, v_s, a_s = plan_pmm_trajectory(waypoints_config, planner_config_file)
+    debug_plot(p_s)

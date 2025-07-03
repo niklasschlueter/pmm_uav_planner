@@ -13,7 +13,7 @@ dependencies = [
     "numpy >= 2.0.0",
     "matplotlib", 
     "pyyaml", 
-    "pybind11-global",
+    "pybind11-global", # global is important
     "toml >= 0.10.2",
     "packaging >= 24.0",
 ]

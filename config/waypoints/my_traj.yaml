@@ -2,15 +2,13 @@
 
 waypoints:
   [ 
+    [2, 1, 0],
     [1, 1, 0],
     [-1, 1, 0],
     [-1, -1, 0],
     [1, -1, 0],
+    [2, -1, 0],
   ]
-start:
-  position: [2, 1, 0]
-  velocity: [0, 0, 0]
+start_velocity: [0, 0, 0]
 
-end:
-  position: [2, -1, 0]
-  velocity: [0, 0, 0]
+end_velocity: [0, 0, 0]
