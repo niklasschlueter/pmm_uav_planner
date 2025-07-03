@@ -32,22 +32,30 @@ The code has been developed and tested on Ubuntu 20.04.
 #### Clone the repository
 
 ```
-git clone git@github.com:ctu-mrs/pmm_uav_planner.git
+git clone git@github.com:niklasschluter/pmm_uav_planner.git
 cd pmm_uav_planner/
 ```
 
-#### Compile the code
+#### CMake to compile the code.
 
 ```
-make
-```
-
-#### Alternatively, you can use CMake to compile the code.
-
-```
+# Install first in order to get the correct pybind version
+pip install -e .
+# Build
 mkdir build && cd build
 cmake ..
 make
+cd ..
+# Install again (necessary even though we use -e)
+pip install -e .
+```
+
+#### Test your installation
+
+```
+cd scripts
+python3 test_bindings.py
+# You should see a trajectory plot.
 ```
 
 ## Usage Demonstration
