@@ -50,6 +50,19 @@ cd ..
 pip install -e .
 ```
 
+#### Troubleshooting
+If you get something like
+```
+CMake Error in CMakeLists.txt:
+Imported target "pybind11::module" includes non-existent path
+      
+    "/usr/include/python3.11"
+```
+you may need to install the python-dev version system wide (even if you use a venv):
+```
+sudo apt install python[version]-dev*
+```
+
 #### Test your installation
 
 ```
